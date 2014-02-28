@@ -16,7 +16,7 @@ pigbones.itemDataLocation = "ACTIONS.item.getters.isType.parameters.itemType.tab
 
 
 function pigbones.setItemData (item, key, value)
-	ACTIONS.item.getters.isType.parameters.itemType.table[item][key] = value 
+	ITEMS[item][key] = value 
 end
 
 function pigbones.setAttackData (attack, key, value)
