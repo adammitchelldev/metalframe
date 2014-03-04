@@ -24,7 +24,7 @@ function deathphaser.onPhaser (values,args) -- our recoil function (which is cal
 end
 
 function deathphaser.actorSpawned (values,args)
-	--printRecursive(ITEMS)
+	--pigbones.recursivePrint(args)
 	return values
 end
 
