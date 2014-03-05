@@ -32,7 +32,19 @@ function pigbones.deepcopy(object)
     return _copy(object)
 end
 
-function pigbones.addhook (target, callback, hooktype)
+function pigbones.addPreHook(target, callback)
+	target = function (...)
+		return target(callback(...))
+	end
+end
+
+function pigbones.addPostHook(target, callback)
+	target = function (...)
+		return callback(target(...))
+	end
+end
+
+function pigbones._addhook (target, callback, hooktype)
 	if pigbones._oldFuncs[target] == nil then -- we need to create the hook first time round
 		pigbones._oldFuncs[target] = pigbones.getfield(target) -- store the old function
 		pigbones._hookFuncs[target] = function (...) -- create the new function

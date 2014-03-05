@@ -8,7 +8,7 @@ local function onInit()
 	ITEMS.phaserGun.ai.attackDist = 2000
 	ITEMS.phaserGun.ai.attackArc = 0.03
 	ITEMS.phaserGun.ai.dangerFactor = 10
-	pigbones.addhook("ITEMS.phaserGun.useMethod", onPhaser, "post")
+	pigbones.addPostHook(ITEMS.phaserGun.useMethod, onPhaser)
 end
 
 local function onPhaser (values,args) -- our recoil function (which is called when a gun has finished firing)
