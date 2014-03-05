@@ -33,15 +33,21 @@ function pigbones.deepcopy(object)
 end
 
 function pigbones.addPreHook(target, callback)
-	target = function (...)
-		return target(callback(...))
-	end
+	local hooked = gpigbones.etfield(target)
+	pigbones.setfield(target, function (...)
+		if callback(...) ~= false then
+			return hooked(...)
+		end
+	end)
 end
 
 function pigbones.addPostHook(target, callback)
-	target = function (...)
-		return callback(target(...))
-	end
+	local hooked = pigbones.getfield(target)
+	pigbones.setfield(target, function (...)
+		local returns = {hooked(...)}
+		callback(returns, ...)
+		return unpack(returns)
+	end)
 end
 
 function pigbones._addhook (target, callback, hooktype)
@@ -109,13 +115,13 @@ function pigbones.setfield (f, v)
 	end
 end
 
-function pigbones.recursivePrint (values, indent, level)
+function pigbones.recursivePrint (values, levels, indent)
 	level = level or 1
 	indent = indent or ""
 	for k,v in pairs(values) do
 		print(indent..tostring(k)..":"..tostring(v))
-		if(type(v) == "table" and level < 2) then
-			pigbones.recursivePrint(v, indent.."    ", level + 1)
+		if(type(v) == "table" and level > 1) then
+			pigbones.recursivePrint(v, level - 1, indent.."    ")
 		end
 	end
 end
