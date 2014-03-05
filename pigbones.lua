@@ -33,7 +33,7 @@ function pigbones.deepcopy(object)
 end
 
 function pigbones.addPreHook(target, callback)
-	local hooked = gpigbones.etfield(target)
+	local hooked = pigbones.setfield(target)
 	pigbones.setfield(target, function (...)
 		if callback(...) ~= false then
 			return hooked(...)
