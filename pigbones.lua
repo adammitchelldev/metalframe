@@ -52,14 +52,14 @@ end
 
 function pigbones.createAttack(index, parent)
 	if type(parent) == "table" then
-		ATTACKS[name] = pigbones.deepcopy(parent)
+		ATTACKS[index] = pigbones.deepcopy(parent)
 	elseif type(ATTACKS[parent]) == "table" then
-		ATTACKS[name] = pigbones.deepcopy(ATTACKS[parent])
+		ATTACKS[index] = pigbones.deepcopy(ATTACKS[parent])
 	else
-		ATTACKS[name] = {}
+		ATTACKS[index] = {}
 	end
-	ATTACKS[name].index = name
-	return ATTACKS[name]
+	ATTACKS[index].index = index
+	return ATTACKS[index]
 end
 
 function pigbones.createObject(index, parent, name)
@@ -227,7 +227,7 @@ function pigbones.setfield (f, v)
 	end
 end
 
-function pigbones.recursivePrint (values, levels, indent)
+function pigbones.recursivePrint (values, level, indent)
 	level = level or 1
 	indent = indent or ""
 	for k,v in pairs(values) do
@@ -237,5 +237,50 @@ function pigbones.recursivePrint (values, levels, indent)
 		end
 	end
 end
-	
---hook.add("gameInit", onInit)
+
+function pigbones.recursiveSearch (search, values, level, indent)
+	level = level or 1
+	indent = indent or ""
+	for k,v in pairs(values) do
+		if type(k) == "string" and string.find(string.lower(k), string.lower(search)) ~= nil then
+			print(indent..tostring(k)..":"..tostring(v))
+			if(type(v) == "table" and level > 1) then
+				pigbones.recursiveSearch(search, v, level - 1, indent.."    ")
+			end
+		end
+	end
+end
+
+function pigbones.recursiveWrite (file, values, level, indent)
+	level = level or 1
+	indent = indent or ""
+	for k,v in pairs(values) do
+		file:write(indent)
+		file:write(tostring(k))
+		file:write(":")
+		file:write(tostring(v))
+		if(type(v) == "table" and level > 1) then
+			file:write(" : {\n")
+			pigbones.recursiveWrite(v, level - 1, indent.."    ")
+			file:write("}\n")
+		else
+			file:write("\n")
+		end
+	end
+end
+
+function pigbones.dumpToFile (fileName, values, level)
+	local file = io.open(fileName, "w")
+	pigbones.recursiveWrite(file, values, level)
+	--file:flush()
+	file:close()
+end
+
+function onInit()
+	--pigbones.recursiveSearch("slug",OBJECTS)
+	--pigbones.addPreHook("Object.new", function(self, name) print(name) end)
+	--pigbones.dumpToFile ("dump.txt", OBJECTS)
+	--pigbones.recursivePrint(OBJECTS.slugMedium.attack)
+end
+
+hook.add("gameInit", onInit)
