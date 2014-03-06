@@ -50,6 +50,118 @@ function pigbones.addPostHook(target, callback)
 	end)
 end
 
+function pigbones.createAttack(index, parent)
+	if type(parent) == "table" then
+		ATTACKS[name] = pigbones.deepcopy(parent)
+	elseif type(ATTACKS[parent]) == "table" then
+		ATTACKS[name] = pigbones.deepcopy(ATTACKS[parent])
+	else
+		ATTACKS[name] = {}
+	end
+	ATTACKS[name].index = name
+	return ATTACKS[name]
+end
+
+function pigbones.createObject(index, parent, name)
+	if type(parent) == "table" then
+		OBJECTS[index] = pigbones.deepcopy(parent)
+	elseif type(OBJECTS[parent]) == "table" then
+		OBJECTS[index] = pigbones.deepcopy(OBJECTS[parent])
+	else
+		OBJECTS[index] = {}
+	end
+	OBJECTS[index].index = index
+	OBJECTS[index].id = index
+	OBJECTS[index].name = name or index
+	return OBJECTS[index]
+end
+
+function pigbones.createItem(index, parent, name)
+	if type(parent) == "table" then
+		ITEMS[index] = pigbones.deepcopy(parent)
+	elseif type(ITEMS[parent]) == "table" then
+		ITEMS[index] = pigbones.deepcopy(ITEMS[parent])
+	else
+		ITEMS[index] = {}
+	end
+	ITEMS[index].index = index
+	ITEMS[index].name = name or index
+	return ITEMS[index]
+end
+
+function pigbones.createObjectItem(index, parent, name)
+	pigbones.createObject(index, parent, name)
+	OBJECTS[index].itemRefIndex = index
+	pigbones.createItem(index, parent, name)
+	return OBJECTS[index], ITEMS[index]
+end
+
+function pigbones.createAmmo(index, parent, name, small, medium, large, icon)
+	pigbones.createObjectItem(index, parent, name)
+	ITEMS.ammoSmall.ammoAmounts[index] = small or ITEMS.ammoSmall.ammoAmounts[parent]
+	ITEMS.ammoSmallDouble.ammoAmounts[index] = small or ITEMS.ammoSmall.ammoAmounts[parent]
+	ITEMS.ammoMedium.ammoAmounts[index] = medium or ITEMS.ammoMedium.ammoAmounts[parent]
+	ITEMS.ammoMediumDouble.ammoAmounts[index] = medium or ITEMS.ammoMediumDouble.ammoAmounts[parent]
+	ITEMS.ammoLarge.ammoAmounts[index] = large or ITEMS.ammoLarge.ammoAmounts[parent]
+	ITEMS.ammoLargeDouble.ammoAmounts[index] = large or ITEMS.ammoLargeDouble.ammoAmounts[parent]
+	return OBJECTS[index], ITEMS[index]
+end
+
+function pigbones.actorShootBullet(actor, bulletName, velocity, angle)
+	local bullet = Object:new(bulletName, actor:getWeaponX(), actor:getWeaponY(), actor.map)
+	actor.map:addObject(bullet)
+	bullet:setOwner(actor)
+	angle = angle or actor:getWeaponAngle()
+	bullet:setAngle(angle)
+	bullet:propel(angle, velocity or 50)
+end
+
+function pigbones.actorShootGrenade(actor, grenadeName, velocity, angle)
+	local bullet = Object:new(grenadeName, actor:getWeaponX(), actor:getWeaponY(), actor.map)
+	angle = angle or actor:getWeaponAngle()
+	if grenadeName ~= "grenade" then 
+		item = Item:new(grenadeName)
+		if grenadeName == "spikedMine" then
+			item.active = false
+			item.stick = true
+		else
+			item.prepare = true
+			item.hitActive = true
+		end
+		bullet.itemRef = item
+	end
+	actor.map:addObject(bullet)
+	bullet:setOwner(actor)
+	bullet:setAngle(angle)
+	bullet:propel(angle, velocity or 50)
+end
+
+function pigbones.createUseWeaponFunction(bulletName, velocity)
+	return function(weapon, actor, angle)
+		if weapon.ammo == nil then
+			pigbones.actorShootBullet(actor, bulletName, velocity, angle)
+		elseif weapon.ammo > 0 then
+			pigbones.actorShootBullet(actor, bulletName, velocity, angle)
+			weapon.ammo = weapon.ammo - 1
+			return true
+		end
+		return false
+	end
+end
+
+function pigbones.createUseGrenadeFunction(grenadeName, velocity)
+	return function(weapon, actor, angle)
+		if weapon.ammo == nil then
+			pigbones.actorShootGrenade(actor, grenadeName, velocity, angle)
+		elseif weapon.ammo > 0 then
+			pigbones.actorShootGrenade(actor, grenadeName, velocity, angle)
+			weapon.ammo = weapon.ammo - 1
+			return true
+		end
+		return false
+	end
+end
+
 function pigbones._addhook (target, callback, hooktype)
 	if pigbones._oldFuncs[target] == nil then -- we need to create the hook first time round
 		pigbones._oldFuncs[target] = pigbones.getfield(target) -- store the old function
