@@ -5,6 +5,10 @@ pigbones._preHookTables = {}
 pigbones._postHookTables = {}
 --local function onInit ()
 
+--holy grail = http://pastebin.com/8KYbeX9g http://pastebin.com/KmVJFMyu http://pastebin.com/Rn5AuT2G http://pastebin.com/C3BS0HQB
+--EXPLOSIONS.type.emit(object,intensity,range)
+--Entity -> MapEntity -> Object
+--print(getClassNameOf(self.super()))
 --end
 
 --item.def.useMethod ( I think )
@@ -227,42 +231,82 @@ function pigbones.setfield (f, v)
 	end
 end
 
+function pigbones.report(returns)
+	pigbones.recursivePrint(returns, 2)
+end
+
+local function sortFunc(a, b)
+	aType = type(a)
+	bType = type(b)
+	if(aType == bType) then
+		if aType == "table" then
+			return true
+		else
+			return a < b
+		end
+	else
+		if aType == "number" then
+			return true
+		elseif bType == "number" then
+			return false
+		elseif aType == "string" then
+			return true
+		elseif bType == "string" then
+			return false
+		end
+	end
+end
+
 function pigbones.recursivePrint (values, level, indent)
+	if type(values) ~= "table" then values = {values} end
 	level = level or 1
 	indent = indent or ""
-	for k,v in pairs(values) do
-		print(indent..tostring(k)..":"..tostring(v))
-		if(type(v) == "table" and level > 1) then
-			pigbones.recursivePrint(v, level - 1, indent.."    ")
+	a = {}
+    for k,_ in pairs(values) do table.insert(a, k) end
+    table.sort(a)
+	for _,k in pairs(a) do
+		print(indent..tostring(k)," = "..tostring(values[k]))
+		if(type(values[k]) == "table" and level > 1) then
+			pigbones.recursivePrint(values[k], level - 1, indent.."    ")
 		end
 	end
 end
 
 function pigbones.recursiveSearch (search, values, level, indent)
+	if type(values) ~= "table" then values = {values} end
 	level = level or 1
 	indent = indent or ""
-	for k,v in pairs(values) do
+	a = {}
+    for k in pairs(values) do table.insert(a, k) end
+    table.sort(a)
+	for _,k in pairs(a) do
 		if type(k) == "string" and string.find(string.lower(k), string.lower(search)) ~= nil then
-			print(indent..tostring(k)..":"..tostring(v))
-			if(type(v) == "table" and level > 1) then
-				pigbones.recursiveSearch(search, v, level - 1, indent.."    ")
+			print(indent..tostring(k)," = "..tostring(values[k]))
+			if(type(values[k]) == "table" and level > 1) then
+				pigbones.recursiveSearch(search, values[k], level - 1, indent.."    ")
 			end
 		end
 	end
 end
 
 function pigbones.recursiveWrite (file, values, level, indent)
+	if type(values) ~= "table" then values = {values} end
 	level = level or 1
 	indent = indent or ""
-	for k,v in pairs(values) do
+	local a = {}
+    for k,v in pairs(values) do table.insert(a, k) end
+    table.sort(a)
+	for _,k in ipairs(a) do
 		file:write(indent)
 		file:write(tostring(k))
-		file:write(":")
-		file:write(tostring(v))
-		if(type(v) == "table" and level > 1) then
+		file:write(" = ")
+		file:write(tostring(values[k]))
+		if(type(values[k]) == "table" and level > 1) then
 			file:write(" : {\n")
-			pigbones.recursiveWrite(v, level - 1, indent.."    ")
-			file:write("}\n")
+			pigbones.recursiveWrite(file, values[k], level - 1, indent.."    ")
+			file:write(indent.."} metatable : {\n")
+			pigbones.recursiveWrite(file, getmetatable(values[k]), level - 1, indent.."    ")
+			file:write(indent.."}\n")
 		else
 			file:write("\n")
 		end
@@ -272,15 +316,28 @@ end
 function pigbones.dumpToFile (fileName, values, level)
 	local file = io.open(fileName, "w")
 	pigbones.recursiveWrite(file, values, level)
-	--file:flush()
+	file:flush()
 	file:close()
 end
 
-function onInit()
-	--pigbones.recursiveSearch("slug",OBJECTS)
-	--pigbones.addPreHook("Object.new", function(self, name) print(name) end)
+local function onInit()
+	--pigbones.recursiveSearch("missile",OBJECTS)
+	--pigbones.recursiveSearch("launcher",ITEMS)
 	--pigbones.dumpToFile ("dump.txt", OBJECTS)
-	--pigbones.recursivePrint(OBJECTS.slugMedium.attack)
+	--local window = gui.createComponent("window")
+	--window:setWidth(400)
+	--window:setHeight(400)
+	--window:centerOnParent()
+	--daisy.setMouseVisible(true)
+	--pigbones.addPostHook("MapEntity.new", pigbones.report)
+	--pigbones.recursivePrint(ITEMS.matterWar)
+	--pigbones.dumpToFile("matterWar.txt", ITEMS, 1)
+	--pigbones.dumpToFile("entity.txt",Entity,1)
+end
+
+local function renderMouse()
+	daisy.setMouseVisible(true)
 end
 
 hook.add("gameInit", onInit)
+--hook.add("frameRender", renderMouse)
