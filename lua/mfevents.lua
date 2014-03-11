@@ -1,5 +1,5 @@
 
--- Table containing the eventlistystem functions
+-- Table containing the event framework functions
 _mf.events = {}
 
 -- We store our eventlist in this table
@@ -7,7 +7,6 @@ _mf.eventlist = {}
 
 -- We make the hooks table local since we don't want the user to have direct access to them.
 -- Each mod is added to one of these tables if it requires a hook callback.
-
 _mf.events.Instance = {}
 _mf.events.Instance_mt = { __index = _mf.events.Instance }
 
@@ -16,7 +15,7 @@ function _mf.events.Instance:new(eventname)
 
 	setmetatable(e, _mf.events.Instance_mt)
 
-	e.callbacks = {
+	e.callbackPriorities = {
 		[1] = {}
 		[2] = {}
 		[3] = {}
@@ -71,17 +70,8 @@ function _mf.events.Instance:registerCallback(callbackname, callback, priority)
 	end
 end
 
-function _mf.events.Instance:getCallback(callbackname, priority)
-	if not priority then
-		for i, p in ipairs(self.callbacks) do
-			if p[callbackname] then
-				return p[callbackname]
-			end
-		end
-		
-	elseif self.callbacks[priority] then
-		return self.callbacks[priority][callbackname]
-	end
+function _mf.events.Instance:getCallback(callbackname)
+	return self.callbacks[callbackname]
 end
 
 function _mf.events.registerEvent(eventname)
