@@ -1,4 +1,6 @@
-function _mf.getCustomBullet(item, ...)
+_mf.items = {}
+
+function _mf.items.getCustomBullet(item, ...)
 	local bullet = nil
 	if item.getCustomBullet then
 		bullet = item.getCustomBullet(item, ...)
@@ -7,7 +9,7 @@ function _mf.getCustomBullet(item, ...)
 	return bullet
 end
 
-function _mf.getCustomBulletSpeed(item, ...)
+function _mf.items.getCustomBulletSpeed(item, ...)
 	local bulletSpeed = nil
 	if item.getCustomBulletSpeed then
 		bulletSpeed = item:getCustomBulletSpeed(...)
@@ -16,7 +18,7 @@ function _mf.getCustomBulletSpeed(item, ...)
 	return bulletSpeed
 end
 
-function _mf.getCustomMuzzleFx(item, ...)
+function _mf.items.getCustomMuzzleFx(item, ...)
 	local muzzleFx = nil
 	if item.getCustomMuzzleFx then
 		muzzleFx = item:getCustomMuzzleFx(...)
@@ -25,7 +27,7 @@ function _mf.getCustomMuzzleFx(item, ...)
 	return muzzleFx
 end
 
-function _mf.getCustomSpecial(item, ...)
+function _mf.items.getCustomSpecial(item, ...)
 	local special = nil
 	if item.getCustomSpecial then
 		special = item:getCustomSpecial(...)
@@ -34,7 +36,7 @@ function _mf.getCustomSpecial(item, ...)
 	return special
 end
 
-function _mf.createItem(index, parent, name)
+function _mf.items.createItem(index, parent, name)
 	if type(parent) == "table" then
 		ITEMS[index] = _mf.deepcopy(parent)
 	elseif type(ITEMS[parent]) == "table" then
@@ -47,7 +49,7 @@ function _mf.createItem(index, parent, name)
 	return ITEMS[index]
 end
 
-function _mf.createAmmo(index, parent, name, small, medium, large, icon)
+function _mf.items.createAmmo(index, parent, name, small, medium, large, icon)
 	_mf.createObjectItem(index, parent, name)
 	ITEMS.ammoSmall.ammoAmounts[index] = small or ITEMS.ammoSmall.ammoAmounts[parent]
 	ITEMS.ammoSmallDouble.ammoAmounts[index] = small or ITEMS.ammoSmall.ammoAmounts[parent]
@@ -58,7 +60,7 @@ function _mf.createAmmo(index, parent, name, small, medium, large, icon)
 	return OBJECTS[index], ITEMS[index]
 end
 
-function _mf.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
+function _mf.items.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
         local obj = nil
         local angle = angle or fireAngle
         if self.def.newtonian then
@@ -86,7 +88,7 @@ function _mf.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
         return obj
 end
  
-function _mf.customWeaponFeedback(self, actor, x, y, angle)
+function _mf.items.customWeaponFeedback(self, actor, x, y, angle)
         if actor.map then
                 local muz = self:getMuzzleFx()
                 if muz then
@@ -102,7 +104,7 @@ function _mf.customWeaponFeedback(self, actor, x, y, angle)
         self:applyRecoilFatigue(self:getRecoilFatigue())
 end
  
-function _mf.customUseMethod(item, ...)
+function _mf.items.customUseMethod(item, ...)
 	local value = nil
 	if item.def.customUseMethod then
 		value = item.def.customUseMethod(item, ...)
@@ -111,7 +113,7 @@ function _mf.customUseMethod(item, ...)
 	return value
 end
  
-function _mf.customGenericWeaponUse(self, actor, angle)
+function _mf.items.customGenericWeaponUse(self, actor, angle)
 		if self.customUseMethod == nil and self._oldUseMethod then self:_oldUseMethod(actor, angle) end
         if self.ammo > 0 then
                 local x,y = actor:getSafeWeaponXY()
@@ -152,15 +154,15 @@ function _mf.customGenericWeaponUse(self, actor, angle)
         return true
 end
 
-function _mf._initItems()
+function _mf.items._initItems()
 	Item._oldGetBullet = Item.getBullet
-	Item.getBullet = _mf.getCustomBullet
+	Item.getBullet = _mf.items.getCustomBullet
 	Item._oldGetBulletSpeed = Item.getBulletSpeed
-	Item.getBulletSpeed = _mf.getCustomBulletSpeed
+	Item.getBulletSpeed = _mf.items.getCustomBulletSpeed
 	Item._oldGetMuzzleFx = Item.getMuzzleFx
-	Item.getMuzzleFx = _mf.getCustomMuzzleFx
+	Item.getMuzzleFx = _mf.items.getCustomMuzzleFx
 	Item._oldGetSpecial = Item.getSpecial
-	Item.getSpecial = _mf.getCustomSpecial
+	Item.getSpecial = _mf.items.getCustomSpecial
 	Item._oldUse = Item.use
-	Item.use = _mf.customUseMethod
+	Item.use = _mf.items.customUseMethod
 end

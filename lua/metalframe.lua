@@ -292,7 +292,7 @@ end
 local function onInit()
 	--Load Pigbones Files	
 	assert(require("mfitems"))
-	_mf._initItems()
+	_mf.items._initItems()
 	
 	
 
