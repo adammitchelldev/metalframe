@@ -292,9 +292,8 @@ end
 local function onInit()
 	--Load Pigbones Files	
 	assert(require("mfitems"))
+	assert(require("mfevents"))
 	_mf.items._initItems()
-	
-	
 
 	--_mf.recursiveSearch("missile",OBJECTS)
 	--_mf.recursiveSearch("launcher",ITEMS)
