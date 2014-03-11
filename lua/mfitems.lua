@@ -1,4 +1,4 @@
-function _pb.getCustomBullet(item, ...)
+function _mf.getCustomBullet(item, ...)
 	local bullet = nil
 	if item.getCustomBullet then
 		bullet = item.getCustomBullet(item, ...)
@@ -7,7 +7,7 @@ function _pb.getCustomBullet(item, ...)
 	return bullet
 end
 
-function _pb.getCustomBulletSpeed(item, ...)
+function _mf.getCustomBulletSpeed(item, ...)
 	local bulletSpeed = nil
 	if item.getCustomBulletSpeed then
 		bulletSpeed = item:getCustomBulletSpeed(...)
@@ -16,7 +16,7 @@ function _pb.getCustomBulletSpeed(item, ...)
 	return bulletSpeed
 end
 
-function _pb.getCustomMuzzleFx(item, ...)
+function _mf.getCustomMuzzleFx(item, ...)
 	local muzzleFx = nil
 	if item.getCustomMuzzleFx then
 		muzzleFx = item:getCustomMuzzleFx(...)
@@ -25,7 +25,7 @@ function _pb.getCustomMuzzleFx(item, ...)
 	return muzzleFx
 end
 
-function _pb.getCustomSpecial(item, ...)
+function _mf.getCustomSpecial(item, ...)
 	local special = nil
 	if item.getCustomSpecial then
 		special = item:getCustomSpecial(...)
@@ -34,11 +34,11 @@ function _pb.getCustomSpecial(item, ...)
 	return special
 end
 
-function _pb.createItem(index, parent, name)
+function _mf.createItem(index, parent, name)
 	if type(parent) == "table" then
-		ITEMS[index] = _pb.deepcopy(parent)
+		ITEMS[index] = _mf.deepcopy(parent)
 	elseif type(ITEMS[parent]) == "table" then
-		ITEMS[index] = _pb.deepcopy(ITEMS[parent])
+		ITEMS[index] = _mf.deepcopy(ITEMS[parent])
 	else
 		ITEMS[index] = {}
 	end
@@ -47,9 +47,8 @@ function _pb.createItem(index, parent, name)
 	return ITEMS[index]
 end
 
-
-function _pb.createAmmo(index, parent, name, small, medium, large, icon)
-	_pb.createObjectItem(index, parent, name)
+function _mf.createAmmo(index, parent, name, small, medium, large, icon)
+	_mf.createObjectItem(index, parent, name)
 	ITEMS.ammoSmall.ammoAmounts[index] = small or ITEMS.ammoSmall.ammoAmounts[parent]
 	ITEMS.ammoSmallDouble.ammoAmounts[index] = small or ITEMS.ammoSmall.ammoAmounts[parent]
 	ITEMS.ammoMedium.ammoAmounts[index] = medium or ITEMS.ammoMedium.ammoAmounts[parent]
@@ -59,7 +58,7 @@ function _pb.createAmmo(index, parent, name, small, medium, large, icon)
 	return OBJECTS[index], ITEMS[index]
 end
 
-function _pb.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
+function _mf.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
         local obj = nil
         local angle = angle or fireAngle
         if self.def.newtonian then
@@ -87,7 +86,7 @@ function _pb.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
         return obj
 end
  
-function _pb.customWeaponFeedback(self, actor, x, y, angle)
+function _mf.customWeaponFeedback(self, actor, x, y, angle)
         if actor.map then
                 local muz = self:getMuzzleFx()
                 if muz then
@@ -103,7 +102,7 @@ function _pb.customWeaponFeedback(self, actor, x, y, angle)
         self:applyRecoilFatigue(self:getRecoilFatigue())
 end
  
-function _pb.customUseMethod(item, ...)
+function _mf.customUseMethod(item, ...)
 	local value = nil
 	if item.def.customUseMethod then
 		value = item.def.customUseMethod(item, ...)
@@ -112,7 +111,7 @@ function _pb.customUseMethod(item, ...)
 	return value
 end
  
-function _pb.customGenericWeaponUse(self, actor, angle)
+function _mf.customGenericWeaponUse(self, actor, angle)
 		if self.customUseMethod == nil and self._oldUseMethod then self:_oldUseMethod(actor, angle) end
         if self.ammo > 0 then
                 local x,y = actor:getSafeWeaponXY()
@@ -128,13 +127,13 @@ function _pb.customGenericWeaponUse(self, actor, angle)
                         bullets = math.ceil(math.min(self.ammo/self:getAmmoUse(), bullets))
                         for i=1,bullets do
                                 local fireAngle = fireAngle + (i -((bullets+1)%2)*0.5 - math.ceil(bullets/2))*self:getBulletSpread()
-                                _pb.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
+                                _mf.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
                         end
                 else
-                        _pb.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
+                        _mf.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
                 end
  
-                _pb.customWeaponFeedback(self, actor, x, y, angle)
+                _mf.customWeaponFeedback(self, actor, x, y, angle)
  
                 local gl = self:getGriplessAmount()
                 if gl > 0 then
@@ -153,15 +152,15 @@ function _pb.customGenericWeaponUse(self, actor, angle)
         return true
 end
 
-function _pb._initItems()
+function _mf._initItems()
 	Item._oldGetBullet = Item.getBullet
-	Item.getBullet = _pb.getCustomBullet
+	Item.getBullet = _mf.getCustomBullet
 	Item._oldGetBulletSpeed = Item.getBulletSpeed
-	Item.getBulletSpeed = _pb.getCustomBulletSpeed
+	Item.getBulletSpeed = _mf.getCustomBulletSpeed
 	Item._oldGetMuzzleFx = Item.getMuzzleFx
-	Item.getMuzzleFx = _pb.getCustomMuzzleFx
+	Item.getMuzzleFx = _mf.getCustomMuzzleFx
 	Item._oldGetSpecial = Item.getSpecial
-	Item.getSpecial = _pb.getCustomSpecial
+	Item.getSpecial = _mf.getCustomSpecial
 	Item._oldUse = Item.use
-	Item.use = _pb.customUseMethod
+	Item.use = _mf.customUseMethod
 end

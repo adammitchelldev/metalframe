@@ -1,8 +1,8 @@
-_pb = {}
-_pb._oldFuncs = {}
-_pb._hookFuncs = {}
-_pb._preHookTables = {}
-_pb._postHookTables = {}
+_mf = {}
+_mf._oldFuncs = {}
+_mf._hookFuncs = {}
+_mf._preHookTables = {}
+_mf._postHookTables = {}
 --local function onInit ()
 
 --holy grail = http://pastebin.com/8KYbeX9g http://pastebin.com/KmVJFMyu http://pastebin.com/Rn5AuT2G http://pastebin.com/C3BS0HQB
@@ -23,7 +23,7 @@ _pb._postHookTables = {}
 
 
 --From Mr_TP's weapon pack
-function _pb.deepcopy(object)
+function _mf.deepcopy(object)
     local lookup_table = {}
     local function _copy(object)
         if type(object) ~= "table" then
@@ -41,29 +41,29 @@ function _pb.deepcopy(object)
     return _copy(object)
 end
 
-function _pb.addPreHook(target, callback)
-	local hooked = _pb.setfield(target)
-	_pb.setfield(target, function (...)
+function _mf.addPreHook(target, callback)
+	local hooked = _mf.setfield(target)
+	_mf.setfield(target, function (...)
 		if callback(...) ~= false then
 			return hooked(...)
 		end
 	end)
 end
 
-function _pb.addPostHook(target, callback)
-	local hooked = _pb.getfield(target)
-	_pb.setfield(target, function (...)
+function _mf.addPostHook(target, callback)
+	local hooked = _mf.getfield(target)
+	_mf.setfield(target, function (...)
 		local returns = {hooked(...)}
 		callback(returns, ...)
 		return unpack(returns)
 	end)
 end
 
-function _pb.createAttack(index, parent)
+function _mf.createAttack(index, parent)
 	if type(parent) == "table" then
-		ATTACKS[index] = _pb.deepcopy(parent)
+		ATTACKS[index] = _mf.deepcopy(parent)
 	elseif type(ATTACKS[parent]) == "table" then
-		ATTACKS[index] = _pb.deepcopy(ATTACKS[parent])
+		ATTACKS[index] = _mf.deepcopy(ATTACKS[parent])
 	else
 		ATTACKS[index] = {}
 	end
@@ -71,14 +71,14 @@ function _pb.createAttack(index, parent)
 	return ATTACKS[index]
 end
 
-function _pb.createObjectItem(index, parent, name)
-	_pb.createObject(index, parent, name)
+function _mf.createObjectItem(index, parent, name)
+	_mf.createObject(index, parent, name)
 	OBJECTS[index].itemRefIndex = index
-	_pb.createItem(index, parent, name)
+	_mf.createItem(index, parent, name)
 	return OBJECTS[index], ITEMS[index]
 end
 
-function _pb.actorShootBullet(actor, bulletName, velocity, angle)
+function _mf.actorShootBullet(actor, bulletName, velocity, angle)
 	local bullet = Object:new(bulletName, actor:getWeaponX(), actor:getWeaponY(), actor.map)
 	actor.map:addObject(bullet)
 	bullet:setOwner(actor)
@@ -87,7 +87,7 @@ function _pb.actorShootBullet(actor, bulletName, velocity, angle)
 	bullet:propel(angle, velocity or 50)
 end
 
-function _pb.actorShootGrenade(actor, grenadeName, velocity, angle)
+function _mf.actorShootGrenade(actor, grenadeName, velocity, angle)
 	local bullet = Object:new(grenadeName, actor:getWeaponX(), actor:getWeaponY(), actor.map)
 	angle = angle or actor:getWeaponAngle()
 	if grenadeName ~= "grenade" then 
@@ -108,12 +108,12 @@ function _pb.actorShootGrenade(actor, grenadeName, velocity, angle)
 end
 
 --[[ deprecated
-function _pb.createUseWeaponFunction(bulletName, velocity)
+function _mf.createUseWeaponFunction(bulletName, velocity)
 	return function(weapon, actor, angle)
 		if weapon.ammo == nil then
-			_pb.actorShootBullet(actor, bulletName, velocity, angle)
+			_mf.actorShootBullet(actor, bulletName, velocity, angle)
 		elseif weapon.ammo > 0 then
-			_pb.actorShootBullet(actor, bulletName, velocity, angle)
+			_mf.actorShootBullet(actor, bulletName, velocity, angle)
 			weapon.ammo = weapon.ammo - 1
 			return true
 		end
@@ -121,12 +121,12 @@ function _pb.createUseWeaponFunction(bulletName, velocity)
 	end
 end
 
-function _pb.createUseGrenadeFunction(grenadeName, velocity)
+function _mf.createUseGrenadeFunction(grenadeName, velocity)
 	return function(weapon, actor, angle)
 		if weapon.ammo == nil then
-			_pb.actorShootGrenade(actor, grenadeName, velocity, angle)
+			_mf.actorShootGrenade(actor, grenadeName, velocity, angle)
 		elseif weapon.ammo > 0 then
-			_pb.actorShootGrenade(actor, grenadeName, velocity, angle)
+			_mf.actorShootGrenade(actor, grenadeName, velocity, angle)
 			weapon.ammo = weapon.ammo - 1
 			return true
 		end
@@ -137,43 +137,43 @@ end
 
 
 
-function _pb._addhook (target, callback, hooktype)
-	if _pb._oldFuncs[target] == nil then -- we need to create the hook first time round
-		_pb._oldFuncs[target] = _pb.getfield(target) -- store the old function
-		_pb._hookFuncs[target] = function (...) -- create the new function
-			local args = _pb._prehook(target, {...}) -- call all of the prehooks
+function _mf._addhook (target, callback, hooktype)
+	if _mf._oldFuncs[target] == nil then -- we need to create the hook first time round
+		_mf._oldFuncs[target] = _mf.getfield(target) -- store the old function
+		_mf._hookFuncs[target] = function (...) -- create the new function
+			local args = _mf._prehook(target, {...}) -- call all of the prehooks
 			if(args == nil) then return end -- a nil return means the 'event' was cancelled
-			local values = {_pb._oldFuncs[target](unpack(args))} -- call the original function
-			return unpack(_pb._posthook(target, values, args)) -- call all of the post hooks
+			local values = {_mf._oldFuncs[target](unpack(args))} -- call the original function
+			return unpack(_mf._posthook(target, values, args)) -- call all of the post hooks
 			--return false
 		end
-		_pb.setfield(target, _pb._hookFuncs[target]) -- set the new function to be called
-		_pb._preHookTables[target] = {n = 0} -- setup pre hook storage
-		_pb._postHookTables[target] = {n = 0} -- setup post hook storage
+		_mf.setfield(target, _mf._hookFuncs[target]) -- set the new function to be called
+		_mf._preHookTables[target] = {n = 0} -- setup pre hook storage
+		_mf._postHookTables[target] = {n = 0} -- setup post hook storage
 	end
 	if hooktype == nil or callback == nil then return end
 	if hooktype == "pre" then
-		_pb._preHookTables[target].n = _pb._preHookTables[target].n + 1
-		_pb._preHookTables[target][_pb._preHookTables[target].n] = callback
+		_mf._preHookTables[target].n = _mf._preHookTables[target].n + 1
+		_mf._preHookTables[target][_mf._preHookTables[target].n] = callback
 	elseif hooktype == "post" then
 		--print("callback added")
-		_pb._postHookTables[target].n = _pb._postHookTables[target].n + 1
-		_pb._postHookTables[target][_pb._postHookTables[target].n] = callback
+		_mf._postHookTables[target].n = _mf._postHookTables[target].n + 1
+		_mf._postHookTables[target][_mf._postHookTables[target].n] = callback
 	end
 end
 
-function _pb._prehook (target, args)
-	for i,v in ipairs(_pb._preHookTables[target]) do
+function _mf._prehook (target, args)
+	for i,v in ipairs(_mf._preHookTables[target]) do
 		args = v(args)
 		if args == nil then return nil end
 	end
 	return args
 end
 
-function _pb._posthook (target, values, args)
+function _mf._posthook (target, values, args)
 	--print("posthook")
 	--print(target)
-	for k,v in pairs(_pb._postHookTables[target]) do
+	for k,v in pairs(_mf._postHookTables[target]) do
 		if k ~= "n" then
 			--print("callback")
 			values = v(values, args)
@@ -182,7 +182,7 @@ function _pb._posthook (target, values, args)
 	return values
 end
 
-function _pb.getfield (f)
+function _mf.getfield (f)
 	local v = _G    -- start with the table of globals
 	for w in string.gfind(f, "[%w_]+") do
 		v = v[w]
@@ -190,7 +190,7 @@ function _pb.getfield (f)
 	return v
 end
 
-function _pb.setfield (f, v)
+function _mf.setfield (f, v)
 	local t = _G    -- start with the table of globals
 	for w, d in string.gfind(f, "([%w_]+)(.?)") do
 		if d == "." then      -- not last field?
@@ -202,8 +202,8 @@ function _pb.setfield (f, v)
 	end
 end
 
-function _pb.report(returns)
-	_pb.recursivePrint(returns, 2)
+function _mf.report(returns)
+	_mf.recursivePrint(returns, 2)
 end
 
 local function sortFunc(a, b)
@@ -228,7 +228,7 @@ local function sortFunc(a, b)
 	end
 end
 
-function _pb.recursivePrint (values, level, indent)
+function _mf.recursivePrint (values, level, indent)
 	if type(values) ~= "table" then values = {values} end
 	level = level or 1
 	indent = indent or ""
@@ -238,12 +238,12 @@ function _pb.recursivePrint (values, level, indent)
 	for _,k in pairs(a) do
 		print(indent..tostring(k)," = "..tostring(values[k]))
 		if(type(values[k]) == "table" and level > 1) then
-			_pb.recursivePrint(values[k], level - 1, indent.."    ")
+			_mf.recursivePrint(values[k], level - 1, indent.."    ")
 		end
 	end
 end
 
-function _pb.recursiveSearch (search, values, level, indent)
+function _mf.recursiveSearch (search, values, level, indent)
 	if type(values) ~= "table" then values = {values} end
 	level = level or 1
 	indent = indent or ""
@@ -254,13 +254,13 @@ function _pb.recursiveSearch (search, values, level, indent)
 		if type(k) == "string" and string.find(string.lower(k), string.lower(search)) ~= nil then
 			print(indent..tostring(k)," = "..tostring(values[k]))
 			if(type(values[k]) == "table" and level > 1) then
-				_pb.recursiveSearch(search, values[k], level - 1, indent.."    ")
+				_mf.recursiveSearch(search, values[k], level - 1, indent.."    ")
 			end
 		end
 	end
 end
 
-function _pb.recursiveWrite (file, values, level, indent)
+function _mf.recursiveWrite (file, values, level, indent)
 	if type(values) ~= "table" then values = {values} end
 	level = level or 1
 	indent = indent or ""
@@ -274,7 +274,7 @@ function _pb.recursiveWrite (file, values, level, indent)
 		file:write(tostring(values[k]))
 		if(type(values[k]) == "table" and level > 1) then
 			file:write(" : {\n")
-			_pb.recursiveWrite(file, values[k], level - 1, indent.."    ")
+			_mf.recursiveWrite(file, values[k], level - 1, indent.."    ")
 			file:write(indent.."}\n")
 		else
 			file:write("\n")
@@ -282,32 +282,32 @@ function _pb.recursiveWrite (file, values, level, indent)
 	end
 end
 
-function _pb.dumpToFile (fileName, values, level)
+function _mf.dumpToFile (fileName, values, level)
 	local file = io.open(fileName, "w")
-	_pb.recursiveWrite(file, values, level)
+	_mf.recursiveWrite(file, values, level)
 	file:flush()
 	file:close()
 end
 
 local function onInit()
 	--Load Pigbones Files	
-	assert(require("pbitems"))
-	_pb._initItems()
+	assert(require("mfitems"))
+	_mf._initItems()
 	
 	
 
-	--_pb.recursiveSearch("missile",OBJECTS)
-	--_pb.recursiveSearch("launcher",ITEMS)
-	--_pb.dumpToFile ("dump.txt", OBJECTS)
+	--_mf.recursiveSearch("missile",OBJECTS)
+	--_mf.recursiveSearch("launcher",ITEMS)
+	--_mf.dumpToFile ("dump.txt", OBJECTS)
 	--local window = gui.createComponent("window")
 	--window:setWidth(400)
 	--window:setHeight(400)
 	--window:centerOnParent()
 	--daisy.setMouseVisible(true)
-	--_pb.addPostHook("MapEntity.new", _pb.report)
-	--_pb.recursivePrint(ITEMS.matterWar)
-	--_pb.dumpToFile("matterWar.txt", ITEMS, 1)
-	--_pb.dumpToFile("entity.txt",Entity,1)
+	--_mf.addPostHook("MapEntity.new", _mf.report)
+	--_mf.recursivePrint(ITEMS.matterWar)
+	--_mf.dumpToFile("matterWar.txt", ITEMS, 1)
+	--_mf.dumpToFile("entity.txt",Entity,1)
 end
 
 local function renderMouse()
