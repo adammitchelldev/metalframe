@@ -8,24 +8,24 @@ _mf.events = {}
 -- We make the hooks table local since we don't want the user to have direct access to them.
 -- Each mod is added to one of these tables if it requires a hook callback.
 
-function _mf.events.registerEvent(eventname)
+function _mf.event.registerEvent(eventname)
 	if not _mf.events[eventname] then
 		local e = {}
 
-		event.callbacks = {}
+		e.callbacks = {}
 
 		_mf.events[eventname] = e
 	end
 end
 
-function _mf.events.popEvent(eventname)
-	if not _mf.events[eventname] then
+function _mf.event.popEvent(eventname)
+	if _mf.events[eventname] then
 		_mf.events[eventname] = nil
 	end
 end
 
-function _mf.events.registerCallback(eventname, callback)
-	if _mf.events[eventname] then
+function _mf.event.registerCallback(eventname, callback)
+	if not _mf.events[eventname] then
 
 		-- Better to do this with table.insert
 		if not _mf.events[eventname].callbacks[callback] then
@@ -34,7 +34,7 @@ function _mf.events.registerCallback(eventname, callback)
 	end
 end
 
-function _mf.events.popCallback(eventname, callback)
+function _mf.event.popCallback(eventname, callback)
 	if _mf.events[eventname] then
 		if not _mf.events[eventname].callbacks[callback] then
 			_mf.events[eventname].callbacks[callback] = nil
