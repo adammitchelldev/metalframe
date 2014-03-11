@@ -14,6 +14,12 @@ function _mf.event.registerEvent(eventname)
 
 		e.callbacks = {}
 
+		function e:fire()
+			for i, c in pairs(self.callbacks) do
+				c()
+			end
+		end
+
 		_mf.events[eventname] = e
 	end
 end
@@ -39,5 +45,11 @@ function _mf.event.popCallback(eventname, callback)
 		if not _mf.events[eventname].callbacks[callback] then
 			_mf.events[eventname].callbacks[callback] = nil
 		end
+	end
+end
+
+function _mf.event.fire(eventname)
+	if _mf.events[eventname] then
+		_mf.events[eventname]:fire()
 	end
 end
