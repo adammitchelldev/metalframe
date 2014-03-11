@@ -68,6 +68,10 @@ function _mf.items.customWeaponShootBullet(self, actor, x,y, fireAngle, angle)
         else
                 obj = self:shootProjectedBullet(actor, x,y, fireAngle, self:getBulletSpeed(), self:getBullet())
         end
+		
+		if self.def.customBulletInit then
+			self.def.customBulletInit(obj, self, actor, x,y, fireAngle, angle)
+		end
  
         if self.def.aimUp then
                 obj.targetAngle = angle
