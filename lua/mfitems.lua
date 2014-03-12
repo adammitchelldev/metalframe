@@ -36,6 +36,15 @@ function _mf.items.getCustomSpecial(item, ...)
 	return special
 end
 
+function _mf.items.getCustomPushback(item, ...)
+	local pushback = nil
+	if item.getCustomPushback then
+		pushback = item:getCustomPushback(...)
+	end
+	pushback = pushback or item:_oldGetPushback()
+	return pushback
+end
+
 function _mf.items.createItem(index, parent, name)
 	if type(parent) == "table" then
 		ITEMS[index] = _mf.deepcopy(parent)
@@ -167,6 +176,8 @@ function _mf.items._initItems()
 	Item.getMuzzleFx = _mf.items.getCustomMuzzleFx
 	Item._oldGetSpecial = Item.getSpecial
 	Item.getSpecial = _mf.items.getCustomSpecial
+	Item._oldGetPushback = Item.getPushback
+	Item.getPushback = _mf.items.getCustomPushback
 	Item._oldUse = Item.use
 	Item.use = _mf.items.customUseMethod
 end
