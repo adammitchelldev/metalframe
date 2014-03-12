@@ -35,13 +35,13 @@ function _mf.events.Instance:pop()
 	self = nil
 end
 
-function _mf.events.Instance:fire()
+function _mf.events.Instance:fire(...)
 	if not self.active return nil
 
 	for i, p in ipairs(self.callbackPriorities) do
 		for k, c in ipairs(p) do
 			if c then
-				c.fire()
+				c.fire(...)
 			else
 				table.remove(p, k)
 			end
@@ -90,9 +90,9 @@ function _mf.events.popCallback(eventname, callbackname)
 	end
 end
 
-function _mf.events.fire(eventname)
+function _mf.events.fire(eventname, ...)
 	if _mf.eventlist[eventname] then
-		_mf.eventlist[eventname]:fire()
+		_mf.eventlist[eventname]:fire(...)
 	end
 end
 
