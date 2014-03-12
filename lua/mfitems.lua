@@ -218,10 +218,26 @@ function _mf.items.customGenericWeaponUse(self, actor, angle)
 		if pb > 0 then
 			actor:applyItemPushback(angle + math.pi, pb)
 		end
-
-		self:useAmmo(actor, self:getAmmoUse()*bullets)
+		
+		if self.def.customUseAmmo then
+			self.def.customUseAmmo(self, bullets, self:getAmmoUse(), actor, angle, pb)
+		else
+			self:useAmmo(actor, self:getAmmoUse()*bullets)
+		end
+		
+		if self.def.customAdditionalUseAmmo then
+			self.def.customAdditionalUseAmmo(self, bullets, self:getAmmoUse(), actor, angle, pb)
+		end
 	else
-		self:failedUse(actor, angle); return false
+		if self.def.customFailedUse then
+			self.def.customFailedUse(self, actor, angle)
+		else
+			self:failedUse(actor, angle); return false
+		end
+		
+		if self.def.customAdditionalFailedUse then
+			self.def.customAdditionalFailedUse(self, actor, angle)
+		end
 	end
 	
 	return true
