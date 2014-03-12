@@ -45,6 +45,24 @@ function _mf.items.getCustomPushback(item, ...)
 	return pushback
 end
 
+function _mf.items.getCustomGriplessAmount(item, ...)
+	local griplessAmount = nil
+	if item.def.getCustomGriplessAmount then
+		griplessAmount = item.def.getCustomGriplessAmount(item, ...)
+	end
+	griplessAmount = griplessAmount or item:_oldGetGriplessAmount()
+	return griplessAmount
+end
+
+function _mf.items.getCustomBulletSpread(item, ...)
+	local bulletSpread = nil
+	if item.def.getCustomBulletSpread then
+		bulletSpread = item.def.getCustomBulletSpread(item, ...)
+	end
+	bulletSpread = bulletSpread or item:_oldGetBulletSpread()
+	return bulletSpread
+end
+
 function _mf.items.createItem(index, parent, name)
 	if type(parent) == "table" then
 		ITEMS[index] = _mf.deepcopy(parent)
@@ -178,6 +196,10 @@ function _mf.items._initItems()
 	Item.getSpecial = _mf.items.getCustomSpecial
 	Item._oldGetPushback = Item.getPushback
 	Item.getPushback = _mf.items.getCustomPushback
+	Item._oldGetGriplessAmount = Item.getGriplessAmount
+	Item.getGriplessAmount = _mf.items.getCustomGriplessAmount
+	Item._oldGetBulletSpread = Item.getBulletSpread
+	Item.getBulletSpread = _mf.items.getCustomBulletSpread
 	Item._oldUse = Item.use
 	Item.use = _mf.items.customUseMethod
 end
