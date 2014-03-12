@@ -2,8 +2,8 @@ _mf.items = {}
 
 function _mf.items.getCustomBullet(item, ...)
 	local bullet = nil
-	if item.getCustomBullet then
-		bullet = item.getCustomBullet(item, ...)
+	if item.def.getCustomBullet then
+		bullet = item.def.getCustomBullet(item, ...)
 	end
 	bullet = bullet or item:_oldGetBullet()
 	return bullet
@@ -11,8 +11,8 @@ end
 
 function _mf.items.getCustomBulletSpeed(item, ...)
 	local bulletSpeed = nil
-	if item.getCustomBulletSpeed then
-		bulletSpeed = item:getCustomBulletSpeed(...)
+	if item.def.getCustomBulletSpeed then
+		bulletSpeed = item.def.getCustomBulletSpeed(item, ...)
 	end
 	bulletSpeed = bulletSpeed or item:_oldGetBulletSpeed()
 	return bulletSpeed
@@ -20,8 +20,8 @@ end
 
 function _mf.items.getCustomMuzzleFx(item, ...)
 	local muzzleFx = nil
-	if item.getCustomMuzzleFx then
-		muzzleFx = item:getCustomMuzzleFx(...)
+	if item.def.getCustomMuzzleFx then
+		muzzleFx = item.def.getCustomMuzzleFx(item, ...)
 	end
 	muzzleFx = muzzleFx or item:_oldGetMuzzleFx()
 	return muzzleFx
@@ -29,8 +29,8 @@ end
 
 function _mf.items.getCustomSpecial(item, ...)
 	local special = nil
-	if item.getCustomSpecial then
-		special = item:getCustomSpecial(...)
+	if item.def.getCustomSpecial then
+		special = item.def.getCustomSpecial(item, ...)
 	end
 	special = special or item:_oldGetSpecial()
 	return special
@@ -38,8 +38,8 @@ end
 
 function _mf.items.getCustomPushback(item, ...)
 	local pushback = nil
-	if item.getCustomPushback then
-		pushback = item:getCustomPushback(...)
+	if item.def.getCustomPushback then
+		pushback = item.def.getCustomPushback(item, ...)
 	end
 	pushback = pushback or item:_oldGetPushback()
 	return pushback
