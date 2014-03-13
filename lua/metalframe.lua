@@ -290,11 +290,17 @@ function _mf.dumpToFile (fileName, values, level)
 end
 
 local function onInit()
-	--Load Pigbones Files	
+	-- Require the modhandle which allows us to load chunks and infos from the mod folder.
+	assert(require("modhandle"))
+
+	--Load Metalframe Files	
 	assert(require("mfitems"))
 	assert(require("mfevents"))
-	_mf.items._initItems()
+	assert(require("mfmods"))
 
+	_mf.items._initItems()
+	_mf.mods.init()
+	
 	--_mf.recursiveSearch("missile",OBJECTS)
 	--_mf.recursiveSearch("launcher",ITEMS)
 	--_mf.dumpToFile ("dump.txt", OBJECTS)
