@@ -290,16 +290,35 @@ function _mf.dumpToFile (fileName, values, level)
 end
 
 local function onInit()
-	-- Require the modhandle which allows us to load chunks and infos from the mod folder.
-	assert(require("modhandle"))
+	--Load Metalframe Files
+	local s, e = pcall(function () require("mfitems") end)
+	if s then
+		local s2, e2 = pcall(function () _mf.items._initItems() end)
 
-	--Load Metalframe Files	
-	assert(require("mfitems"))
-	assert(require("mfevents"))
-	assert(require("mfmods"))
+		if not s2 then
+			print("[METALFRAME BASE FATAL ERROR]\n" ..e2)
+		end
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
 
-	_mf.items._initItems()
-	_mf.mods.init()
+	local s, e = pcall(function () require("mfevents") end)
+	if s then
+
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
+	
+	local s, e = pcall(function () require("mfmods") end)
+	if s then
+		local s2, e2 = pcall(function () _mf.mods.init() end)
+
+		if not s2 then
+			print("[METALFRAME BASE FATAL ERROR]\n" ..e2)
+		end
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
 	
 	--_mf.recursiveSearch("missile",OBJECTS)
 	--_mf.recursiveSearch("launcher",ITEMS)

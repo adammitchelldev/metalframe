@@ -16,10 +16,10 @@ function _mf.events.Instance:new(eventname)
 	setmetatable(e, _mf.events.Instance_mt)
 
 	e.callbackPriorities = {
-		[1] = {}
-		[2] = {}
-		[3] = {}
-		[4] = {}
+		[1] = {},
+		[2] = {},
+		[3] = {},
+		[4] = {},
 		[5] = {}
 	}
 
@@ -35,12 +35,12 @@ function _mf.events.Instance:pop()
 	self = nil
 end
 
-function _mf.events:Instance:popCallback(callbackname)
+function _mf.events.Instance:popCallback(callbackname)
 	-- This still needs to be done. I'll let Isogash handle this.
 end
 
 function _mf.events.Instance:fire(...)
-	if not self.active then return nil
+	if not self.active then return nil end
 
 	for i, p in ipairs(self.callbackPriorities) do
 		for k, c in ipairs(p) do

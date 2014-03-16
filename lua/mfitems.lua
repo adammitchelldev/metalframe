@@ -88,7 +88,7 @@ function _mf.items.customUseMethod(item, ...)
 	
 	value = value or item:_oldUse(...)
 	
-	if item.def.customAdditionalUseMethod
+	if item.def.customAdditionalUseMethod then
 		value = item.def.customAdditionalUseMethod(value, item, ...)
 	end
 	

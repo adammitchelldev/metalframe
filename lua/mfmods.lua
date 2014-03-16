@@ -13,8 +13,6 @@ _mf.mods.Instance_mt = { __index = _mf.mods.Instance }
 _mf.loadorder = {}
 
 function _mf.mods.Instance:new(modname, active)
-	local infofile = assert(io.open())
-
 	local m = {}
 
 	setmetatable(m, _mf.mods.Instance_mt)
@@ -25,6 +23,12 @@ function _mf.mods.Instance:new(modname, active)
 	_mf.modlist[modname] = m.modname
 
 	m.active = active or true
+
+	-- >>>>>>>>><<<<<<<<<
+	-- >> INFO LOADING <<
+	-- >>>>>>>>><<<<<<<<<
+
+	-- LEGACY LOADING
 
 	-- 1.0 Handle the table of information here (Currently just .ini line reading)
 	self:handleInfo(_mf.modhandle.loadInfo(self.modname))()
@@ -38,8 +42,12 @@ function _mf.mods.Instance:new(modname, active)
 		end
 	end
 
+	-- >>>>>>>>><<<<<<<<
+	-- >> MOD LOADING <<
+	-- >>>>>>>>><<<<<<<<
+
 	-- We will store the executed chunk and it's returned table in this function.
-	m.mod = _mf.modhandle.loadmod(modname)
+	m.mod = assert(loadfile())
 
 	-- Make sure that a chunk was actually loaded. If so, execute it.
 	if m.mod then
@@ -65,7 +73,7 @@ function _mf.mods.Instance:handleInfo(information)
 	-- We take in the information and simply pass it on to our variables.
 	self.author 		= information.author or "Unknown"
 	self.version 		= information.version or ""
-	self.gameversion	= information.gameversion or "124i"
+	self.gameversion	= information.gameversion or "invalid"
 	self.dependecies	= information.dependecies or {}
 	self.description	= information.description or ""
 	self.creationdate	= information.creationdate or ""
@@ -152,6 +160,8 @@ function _mf.mods.init()
 		The above traversing over every single file will however be done after the loadorder file has been read and loaded.
 		This means that mods inside of the loadorder have a higher priority than mods that are not bound to the loadorder.
 	--]]
+
+	local infofiles = daisy.getFolderContents("lua/mods", "*.ini")
 end
 
 -- We can call this function if we want to restart the system from the init function.
