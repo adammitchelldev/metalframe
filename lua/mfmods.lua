@@ -3,6 +3,9 @@
 -- Table containing all the functions needed to access and create mods
 _mf.mods = {}
 
+-- The path to the modfolder
+_mf.mods.modDir = string.sub(debug.getinfo(1,'S').source, 2, -11):gsub("\\","/") .."mods/"
+
 -- A table containing tables filled with the mod and about information.
 _mf.modlist = {}
 
@@ -10,7 +13,7 @@ _mf.mods.Instance = {}
 _mf.mods.Instance_mt = { __index = _mf.mods.Instance }
 
 -- We will store a sequence of strings in this table. Their position indicates their load priority.
-_mf.loadorder = {}
+_mf.mods.loadorder = {}
 
 function _mf.mods.Instance:new(modname, active)
 	local m = {}
@@ -22,7 +25,9 @@ function _mf.mods.Instance:new(modname, active)
 	-- We temporarily store the name of the mod in the modlist to avoid an endless loop of loading.
 	_mf.modlist[modname] = m.modname
 
-	m.active = active or true
+	m.active 	= active or true
+	m.errors 	= {} -- This will be used to display errors and information in the mod menu later on.
+	m.notices 	= {} -- Also allows overflow handling possibly disabling certain parts of a mod if it creates to many errors.
 
 	-- >>>>>>>>><<<<<<<<<
 	-- >> INFO LOADING <<
@@ -31,11 +36,10 @@ function _mf.mods.Instance:new(modname, active)
 	-- LEGACY LOADING
 
 	-- 1.0 Handle the table of information here (Currently just .ini line reading)
-	self:handleInfo(_mf.modhandle.loadInfo(self.modname))()
 
 	-- 1.1 Check if we have a load order - otherwise load dependecies.
-	if not table.getn(_mf.loadorder) then
-		if table.getn(self.dependecies) then
+	if #_mf.mods.loadorder then
+		if self.dependecies and #self.dependecies ~= 0 then
 			for i, k in ipairs(self.dependecies) do
 				_mf.mods.load(k)
 			end
@@ -46,12 +50,16 @@ function _mf.mods.Instance:new(modname, active)
 	-- >> MOD LOADING <<
 	-- >>>>>>>>><<<<<<<<
 
-	-- We will store the executed chunk and it's returned table in this function.
-	m.mod = assert(loadfile())
+	local s, e = pcall(function () m.mod = loadfile(_mf.mods.modDir ..modname ..".lua") end)
 
-	-- Make sure that a chunk was actually loaded. If so, execute it.
-	if m.mod then
-		m.mod = m.mod()
+	if not s then
+		print("[METALFRAME MOD LOADER][" ..string.upper(modname) .."]" ..e)
+	else
+		local s2, e2 = pcall(function () m.mod = m.mod() end)
+
+		if not s2 then
+			print("[METALFRAME MOD LOADER][" ..string.upper(modname) .."]" ..e2)
+		end
 	end
 
 	-- Make sure that the mod is an actual table returned from executing the chunk
@@ -59,7 +67,7 @@ function _mf.mods.Instance:new(modname, active)
 		_mf.modlist[modname] = m
 
 		if m.mod.load then
-			m.mod:load()
+			m.mod.load()
 		end
 
 		return m
@@ -71,6 +79,7 @@ end
 
 function _mf.mods.Instance:handleInfo(information)
 	-- We take in the information and simply pass it on to our variables.
+	self.active 		= information.active or true
 	self.author 		= information.author or "Unknown"
 	self.version 		= information.version or ""
 	self.gameversion	= information.gameversion or "invalid"
@@ -103,7 +112,7 @@ end
 -- Loads a mod as well as the mods info file (modname is the name of the mod inside of the mods folder)
 function _mf.mods.load(modname, active)
 	if not _mf.modlist[modname] then
-		return _mf.mods.Instance(modname, active)
+		return _mf.mods.Instance:new(modname, active)
 	end
 end
 
@@ -142,6 +151,14 @@ function _mf.mods.getMod(modname)
 	end
 end
 
+function _mf.mods.setActive(modname, value)
+	if _mf.modlist[modname] then
+		if typeof(value) == "boolean" then
+			_mf.modlist[modname].active = value
+		end
+	end
+end
+
 -- Returns true if a mod's active variable is set to true.
 function _mf.mods.getActive(modname)
 	if _mf.modlist[modname] then
@@ -151,17 +168,27 @@ end
 
 -- The entry point for the mod system
 function _mf.mods.init()
-	--[[
-		This is the only part that needs to be done for now. We need a function that will go through each file in the mods folder.
-		Currently this is a little tricky since we would probably use the io library for the loading of files and the construction of a file tree.
-		However, the io library works with absolute file paths which we can simply not use because there has not been a way to get the current working directory
-		of a lua file. Of course this is possible to be done and I am missing the components and the time to currently do so.
-
-		The above traversing over every single file will however be done after the loadorder file has been read and loaded.
-		This means that mods inside of the loadorder have a higher priority than mods that are not bound to the loadorder.
-	--]]
-
+	-- Loading of mods if we don't have a loadorder.ini file
 	local infofiles = daisy.getFolderContents("lua/mods", "*.ini")
+
+	-- First do a quick sweep checking if the loadorder file exists.
+	for i, f in pairs(infofiles) do
+		if f == "loadorder.ini" then
+			-- Handle the loadorder by inserting entries into the loadorder table
+		end
+	end
+
+	if #_mf.mods.loadorder == 0 then
+		-- If the loadorder is empty we just execute each mod after the other
+		for i, f in pairs(infofiles) do
+			_mf.mods.load(string.sub(f, 1, -5), true)
+		end
+	else
+		-- Otherwise we will just go over each indexed entry in the loadorder table
+		for i, f in pairs(_mf.mods.loadorder) do
+			_mf.mods.load(string.sub(f, 1, -5), true)
+		end
+	end
 end
 
 -- We can call this function if we want to restart the system from the init function.

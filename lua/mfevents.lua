@@ -35,15 +35,27 @@ function _mf.events.Instance:pop()
 	self = nil
 end
 
-function _mf.events.Instance:popCallback(callbackname)
-	-- This still needs to be done. I'll let Isogash handle this.
+function _mf.events.Instance:popCallback(callbackname, priority)
+	if priority and type(priority) == "number" then
+		if self.callbackPriorities[priority] then
+			if self.callbackPriorities[priority][callbackname] then
+				self.callbackPriorities[priority][callbackname] = nil
+			end
+		end
+	end
+
+	for i, p in ipairs(self.callbackPriorities) do
+		if p[callbackname] then
+			p[callbackname] = nil
+		end
+	end
 end
 
 function _mf.events.Instance:fire(...)
 	if not self.active then return nil end
 
 	for i, p in ipairs(self.callbackPriorities) do
-		for k, c in ipairs(p) do
+		for k, c in pairs(p) do
 			if c then
 				c.fire(...)
 			else
@@ -57,17 +69,17 @@ function _mf.events.Instance:registerCallback(callbackname, callback, priority)
 	priority = priority or 3
 
 	if self.callbackPriorities[priority] then
-		local callbackInstance = self.callbacks[callbackname]
+		local callbackInstance = self.callbackPriorities[priority][callbackname] or {active = true}
 
-		if not callbackInstance then
-			self.callbacks[callbackname] = {}
-			callbackInstance.active = true
-		end
-
+		callbackInstance.name = callbackname
 		callbackInstance.fire = callback
 		callbackInstance.priority = priority
 
-		table.insert(self.callbackPriorities[priority], callbackInstance)
+		self.callbackPriorities[priority][callbackname] = callbackInstance
+
+		if self.callbackPriorities[priority][callbackname] then
+			print("Registered: '" ..callbackname .."' to the event '" ..self.name .."'")
+		end
 
 		return callbackInstance
 	end
