@@ -18,8 +18,7 @@ function mod.lateupdate(dt) -- Should be called at the end of each frame but tha
 end
 
 function mod.render()
-	-- Screen rendering is working great!
-	video.renderRectangle(0, 0, 24, 24, 255, 255, 255, 255)
+
 end
 
 function mod.keypress(key) -- Called when a key is pressed by the user
@@ -44,7 +43,7 @@ function mod.keypress(key) -- Called when a key is pressed by the user
 			print("[KEYLOGGER] Disabled the keylogger - Press '1' to enable it again")
 
 			mod.keylog = false
-
+			
 			return
 
 		elseif key == 51 then
@@ -54,6 +53,8 @@ function mod.keypress(key) -- Called when a key is pressed by the user
 
 			mod.active = false -- This is not working yet since the events system still calls callbacks even if the mod is inactive
 
+			daisy.clearPrint()
+			
 			return
 
 		end

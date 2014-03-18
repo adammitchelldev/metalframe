@@ -55,7 +55,12 @@ function _mf.mods.Instance:new(modname, active)
 		return
 	end
 
-	print(m.author)
+	if m.gameversion ~= "invalid" and m.gameversion ~= _version then
+		print("[METALFRAME MOD LOADER][" ..string.upper(modname) .."]" .."The version of Cobalt the mod was created for is '" ..m.gameversion .."' - the running version however is '" .._version .."'")
+
+	elseif m.gameversion == "invalid" then
+		print("[METALFRAME MOD LOADER][" ..string.upper(modname) .."] The mod does not indicate which version of Cobalt it was created for - bugs and errors might appear during gameplay.")
+	end
 
 	-- 1.1 Check if we have a load order - otherwise load dependecies.
 	if #_mf.mods.loadorder then
