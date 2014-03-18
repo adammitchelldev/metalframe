@@ -29,13 +29,33 @@ function _mf.mods.Instance:new(modname, active)
 	m.errors 	= {} -- This will be used to display errors and information in the mod menu later on.
 	m.notices 	= {} -- Also allows overflow handling possibly disabling certain parts of a mod if it creates to many errors.
 
+	--[[
+		Currently when there is an error the game is notified by simply priting it on the screen. We will change this 
+		to show up in the respective mod's submenu in the modmanager later on. This way, users will be able to see what's broken
+		and notify the developer of the mod. Also, this will allow us to keep all the information concerning a certain mod in 
+		a single place removing cluttering information during gameplay that may come as a consequenz of some mods error.
+	--]]
+
 	-- >>>>>>>>><<<<<<<<<
 	-- >> INFO LOADING <<
 	-- >>>>>>>>><<<<<<<<<
 
 	-- LEGACY LOADING
 
-	-- 1.0 Handle the table of information here (Currently just .ini line reading)
+	-- 1.0 Handle the table of information here.
+	local s, e = pcall(
+		function ()
+			m:handleInfo(loadfile(_mf.mods.modDir ..modname ..".ini")())
+		end
+	)
+
+	if not s then
+		print("[METALFRAME MOD LOADER][" ..string.upper(modname) .."]" ..e)
+
+		return
+	end
+
+	print(m.author)
 
 	-- 1.1 Check if we have a load order - otherwise load dependecies.
 	if #_mf.mods.loadorder then
@@ -77,15 +97,14 @@ function _mf.mods.Instance:new(modname, active)
 	end
 end
 
-function _mf.mods.Instance:handleInfo(information)
+function _mf.mods.Instance:handleInfo(t)
 	-- We take in the information and simply pass it on to our variables.
-	self.active 		= information.active or true
-	self.author 		= information.author or "Unknown"
-	self.version 		= information.version or ""
-	self.gameversion	= information.gameversion or "invalid"
-	self.dependecies	= information.dependecies or {}
-	self.description	= information.description or ""
-	self.creationdate	= information.creationdate or ""
+	self.author 		= t.author or "Unknown"
+	self.version 		= t.version or ""
+	self.gameversion	= t.gameversion or "invalid"
+	self.dependecies	= t.dependecies or {}
+	self.description	= t.description or ""
+	self.creationdate	= t.creationdate or ""
 end
 
 function _mf.mods.Instance:reloadMod()

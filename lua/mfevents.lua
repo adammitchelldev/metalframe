@@ -77,10 +77,6 @@ function _mf.events.Instance:registerCallback(callbackname, callback, priority)
 
 		self.callbackPriorities[priority][callbackname] = callbackInstance
 
-		if self.callbackPriorities[priority][callbackname] then
-			print("Registered: '" ..callbackname .."' to the event '" ..self.name .."'")
-		end
-
 		return callbackInstance
 	end
 end

@@ -17,6 +17,11 @@ function mod.lateupdate(dt) -- Should be called at the end of each frame but tha
 
 end
 
+function mod.render()
+	-- Screen rendering is working great!
+	video.renderRectangle(0, 0, 24, 24, 255, 255, 255, 255)
+end
+
 function mod.keypress(key) -- Called when a key is pressed by the user
 	if not mod.keylog then
 		if key == 49 then
@@ -61,6 +66,7 @@ end
 function mod.load()
 	_mf.events.getEvent("update"):registerCallback("examplemod/update", mod.update, 1)
 	_mf.events.getEvent("update"):registerCallback("examplemod/lateupdate", mod.lateupdate, 3)
+	_mf.events.getEvent("render"):registerCallback("examplemod/render", mod.render, 1)
 	_mf.events.getEvent("keypress"):registerCallback("examplemod/keypress", mod.keypress, 1)
 end
 
@@ -68,6 +74,7 @@ end
 function mod:unload()
 	_mf.events.getEvent("update"):popCallback("examplemod/update")
 	_mf.events.getEvent("update"):popCallback("examplemod/lateupdate")
+	_mf.events.getEvent("render"):popCallback("examplemod/render")
 end
 
 return mod
