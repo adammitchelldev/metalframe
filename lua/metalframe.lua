@@ -290,12 +290,78 @@ function _mf.dumpToFile (fileName, values, level)
 end
 
 local function onInit()
-	--Load Pigbones Files	
-	assert(require("mfitems"))
-	_mf.items._initItems()
-	
-	
+	-- MFITEMS LOADING AND INITIALIZING
 
+	local s, e = pcall(function () require("mfitems") end)
+	if s then
+		local s2, e2 = pcall(function () _mf.items._initItems() end)
+
+		if not s2 then
+			print("[METALFRAME BASE FATAL ERROR]\n" ..e2)
+		end
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
+
+	-- MFEVENTS LOADING AND INITIALIZING
+
+	local s, e = pcall(function () require("mfevents") end)
+	if s then
+		_mf.events.registerEvent("update")
+		_mf.events.registerEvent("render")
+		_mf.events.registerEvent("close")
+
+		_mf.events.registerEvent("keypress")
+		_mf.events.registerEvent("mousepress")
+		_mf.events.registerEvent("joypress")
+
+		local function eventUpdate(dt)
+			_mf.events.fire("update", dt)
+		end
+
+		local function eventRender()
+			_mf.events.fire("render")
+		end
+
+		local function eventClose()
+			_mf.events.fire("close")
+		end
+
+		local function eventOnKey(keycode)
+			_mf.events.fire("keypress", keycode)
+		end
+
+		local function eventOnMouse(x, y, button, clickCount)
+			_mf.events.fire("mousepress", x, y, button, clickCount)
+		end
+
+		local function eventOnJoy(joyId, button)
+			_mf.events.fire("joypress", joyId, button)
+		end
+
+		hook.add("frameUpdate", eventUpdate)
+		hook.add("frameRender", eventRender)
+		hook.add("keyPress", eventOnKey)
+		hook.add("mouseButton", eventOnMouse)
+		hook.add("joystickButtonPressed", eventOnJoy)
+		hook.add("gameClose", eventClose)
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
+	
+	-- MFMODS LOADING AND INITIALIZING -> Should be done after all subsystems have been loaded.
+
+	local s, e = pcall(function () require("mfmods") end)
+	if s then
+		local s2, e2 = pcall(function () _mf.mods.init() end)
+
+		if not s2 then
+			print("[METALFRAME BASE FATAL ERROR]\n" ..e2)
+		end
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
+	
 	--_mf.recursiveSearch("missile",OBJECTS)
 	--_mf.recursiveSearch("launcher",ITEMS)
 	--_mf.dumpToFile ("dump.txt", OBJECTS)
