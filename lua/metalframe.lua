@@ -1,9 +1,4 @@
 _mf = {}
-_mf._oldFuncs = {}
-_mf._hookFuncs = {}
-_mf._preHookTables = {}
-_mf._postHookTables = {}
---local function onInit ()
 
 --holy grail = http://pastebin.com/8KYbeX9g http://pastebin.com/KmVJFMyu http://pastebin.com/Rn5AuT2G http://pastebin.com/C3BS0HQB
 --EXPLOSIONS.type.emit(object,intensity,range)
@@ -21,6 +16,28 @@ _mf._postHookTables = {}
 --<Trif> <thewreck> local soundToVisFactor = 1/250
 --<Trif> <thewreck> local recoilToVisFactor = 0.5
 
+function _mf.getfield(f)
+	local v = _G 	-- Start with the table of globals
+
+	for w in string.gfind(f, "[%w_]+") do
+		v = v[w]
+	end
+
+	return v
+end
+
+function _mf.setfield(f, v)
+	local t = _G 	-- Start with the table of globals
+
+	for w, d in string.gfind(f, "([%w_]+)(.?)") do
+		if d == "." then 	-- not last field?
+			t[w] = t[w] or {}   -- create table if absent
+			t = t[w]	-- Get the table
+		else 	-- Last field
+			t[w] = v 	-- do the assignment
+		end
+	end
+end
 
 --From Mr_TP's weapon pack
 function _mf.deepcopy(object)
@@ -42,21 +59,29 @@ function _mf.deepcopy(object)
 end
 
 function _mf.addPreHook(target, callback)
-	local hooked = _mf.setfield(target)
-	_mf.setfield(target, function (...)
-		if callback(...) ~= false then
-			return hooked(...)
+	local hooked = _mf.getfield(target)
+
+	_mf.setfield(target, 
+		function (...)
+			if callback(...) ~= false then
+				return hooked(...)
+			end
 		end
-	end)
+	)
 end
 
 function _mf.addPostHook(target, callback)
 	local hooked = _mf.getfield(target)
-	_mf.setfield(target, function (...)
-		local returns = {hooked(...)}
-		callback(returns, ...)
-		return unpack(returns)
-	end)
+
+	_mf.setfield(target,
+		function (...)
+			local returns = {hooked(...)}
+
+			callback(returns, ...)
+
+			return unpack(returns)
+		end
+	)
 end
 
 function _mf.createAttack(index, parent)
@@ -74,7 +99,15 @@ end
 function _mf.createObjectItem(index, parent, name)
 	_mf.createObject(index, parent, name)
 	OBJECTS[index].itemRefIndex = index
-	_mf.createItem(index, parent, name)
+	_mf.items.createItem(index, parent, name)
+	_mf.items.createItem(index, parent, name)
+	return OBJECTS[index], ITEMS[index]
+end
+
+function _mf.createObjectItem(index, parent, name)
+	_mf.createObject(index, parent, name)
+	OBJECTS[index].itemRefIndex = index
+	_mf.items.createItem(index, parent, name)
 	return OBJECTS[index], ITEMS[index]
 end
 
@@ -105,101 +138,6 @@ function _mf.actorShootGrenade(actor, grenadeName, velocity, angle)
 	bullet:setOwner(actor)
 	bullet:setAngle(angle)
 	bullet:propel(angle, velocity or 50)
-end
-
---[[ deprecated
-function _mf.createUseWeaponFunction(bulletName, velocity)
-	return function(weapon, actor, angle)
-		if weapon.ammo == nil then
-			_mf.actorShootBullet(actor, bulletName, velocity, angle)
-		elseif weapon.ammo > 0 then
-			_mf.actorShootBullet(actor, bulletName, velocity, angle)
-			weapon.ammo = weapon.ammo - 1
-			return true
-		end
-		return false
-	end
-end
-
-function _mf.createUseGrenadeFunction(grenadeName, velocity)
-	return function(weapon, actor, angle)
-		if weapon.ammo == nil then
-			_mf.actorShootGrenade(actor, grenadeName, velocity, angle)
-		elseif weapon.ammo > 0 then
-			_mf.actorShootGrenade(actor, grenadeName, velocity, angle)
-			weapon.ammo = weapon.ammo - 1
-			return true
-		end
-		return false
-	end
-end
---]]
-
-
-
-function _mf._addhook (target, callback, hooktype)
-	if _mf._oldFuncs[target] == nil then -- we need to create the hook first time round
-		_mf._oldFuncs[target] = _mf.getfield(target) -- store the old function
-		_mf._hookFuncs[target] = function (...) -- create the new function
-			local args = _mf._prehook(target, {...}) -- call all of the prehooks
-			if(args == nil) then return end -- a nil return means the 'event' was cancelled
-			local values = {_mf._oldFuncs[target](unpack(args))} -- call the original function
-			return unpack(_mf._posthook(target, values, args)) -- call all of the post hooks
-			--return false
-		end
-		_mf.setfield(target, _mf._hookFuncs[target]) -- set the new function to be called
-		_mf._preHookTables[target] = {n = 0} -- setup pre hook storage
-		_mf._postHookTables[target] = {n = 0} -- setup post hook storage
-	end
-	if hooktype == nil or callback == nil then return end
-	if hooktype == "pre" then
-		_mf._preHookTables[target].n = _mf._preHookTables[target].n + 1
-		_mf._preHookTables[target][_mf._preHookTables[target].n] = callback
-	elseif hooktype == "post" then
-		--print("callback added")
-		_mf._postHookTables[target].n = _mf._postHookTables[target].n + 1
-		_mf._postHookTables[target][_mf._postHookTables[target].n] = callback
-	end
-end
-
-function _mf._prehook (target, args)
-	for i,v in ipairs(_mf._preHookTables[target]) do
-		args = v(args)
-		if args == nil then return nil end
-	end
-	return args
-end
-
-function _mf._posthook (target, values, args)
-	--print("posthook")
-	--print(target)
-	for k,v in pairs(_mf._postHookTables[target]) do
-		if k ~= "n" then
-			--print("callback")
-			values = v(values, args)
-		end
-	end
-	return values
-end
-
-function _mf.getfield (f)
-	local v = _G    -- start with the table of globals
-	for w in string.gfind(f, "[%w_]+") do
-		v = v[w]
-	end
-	return v
-end
-
-function _mf.setfield (f, v)
-	local t = _G    -- start with the table of globals
-	for w, d in string.gfind(f, "([%w_]+)(.?)") do
-		if d == "." then      -- not last field?
-			t[w] = t[w] or {}   -- create table if absent
-			t = t[w]            -- get the table
-		else                  -- last field
-			t[w] = v            -- do the assignment
-		end
-	end
 end
 
 function _mf.report(returns)
@@ -283,15 +221,106 @@ function _mf.recursiveWrite (file, values, level, indent)
 end
 
 function _mf.dumpToFile (fileName, values, level)
-	local file = io.open(fileName, "w")
+	local file = io.open("lua_dump/" ..fileName, "w")
+
 	_mf.recursiveWrite(file, values, level)
+
 	file:flush()
+
 	file:close()
 end
 
-local function onInit()
-	-- MFITEMS LOADING AND INITIALIZING
+--[[	DEPRECATED
 
+	function _mf.createUseWeaponFunction(bulletName, velocity)
+		return function(weapon, actor, angle)
+			if weapon.ammo == nil then
+				_mf.actorShootBullet(actor, bulletName, velocity, angle)
+			elseif weapon.ammo > 0 then
+				_mf.actorShootBullet(actor, bulletName, velocity, angle)
+				weapon.ammo = weapon.ammo - 1
+				return true
+			end
+			return false
+		end
+	end
+
+	function _mf.createUseGrenadeFunction(grenadeName, velocity)
+		return function(weapon, actor, angle)
+			if weapon.ammo == nil then
+				_mf.actorShootGrenade(actor, grenadeName, velocity, angle)
+			elseif weapon.ammo > 0 then
+				_mf.actorShootGrenade(actor, grenadeName, velocity, angle)
+				weapon.ammo = weapon.ammo - 1
+				return true
+			end
+			return false
+		end
+	end
+
+--]]
+
+
+--[[ 	UNUSED
+
+	function _mf._addhook (target, callback, hooktype)
+		if _mf._oldFuncs[target] == nil then -- we need to create the hook first time round
+			_mf._oldFuncs[target] = _mf.getfield(target) -- store the old function
+			_mf._hookFuncs[target] = function (...) -- create the new function
+				local args = _mf._prehook(target, {...}) -- call all of the prehooks
+				if(args == nil) then return end -- a nil return means the 'event' was cancelled
+				local values = {_mf._oldFuncs[target](unpack(args))} -- call the original function
+				return unpack(_mf._posthook(target, values, args)) -- call all of the post hooks
+				--return false
+			end
+			_mf.setfield(target, _mf._hookFuncs[target]) -- set the new function to be called
+			_mf._preHookTables[target] = {n = 0} -- setup pre hook storage
+			_mf._postHookTables[target] = {n = 0} -- setup post hook storage
+		end
+		if hooktype == nil or callback == nil then return end
+		if hooktype == "pre" then
+			_mf._preHookTables[target].n = _mf._preHookTables[target].n + 1
+			_mf._preHookTables[target][_mf._preHookTables[target].n] = callback
+		elseif hooktype == "post" then
+			--print("callback added")
+			_mf._postHookTables[target].n = _mf._postHookTables[target].n + 1
+			_mf._postHookTables[target][_mf._postHookTables[target].n] = callback
+		end
+	end
+
+	function _mf._prehook (target, args)
+		for i,v in ipairs(_mf._preHookTables[target]) do
+			args = v(args)
+			if args == nil then return nil end
+		end
+		return args
+	end
+
+	function _mf._posthook (target, values, args)
+		--print("posthook")
+		--print(target)
+		for k,v in pairs(_mf._postHookTables[target]) do
+			if k ~= "n" then
+				--print("callback")
+				values = v(values, args)
+			end
+		end
+		return values
+	end
+
+--]]
+
+local function onInit()
+
+	-- MFOBJECTS LOADING AND INITIALIZING
+	local s, e = pcall(function () require("mfobjects") end)
+	if s then
+
+	else
+		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
+	end
+
+	-- MFITEMS LOADING AND INITIALIZING
 	local s, e = pcall(function () require("mfitems") end)
 	if s then
 		local s2, e2 = pcall(function () _mf.items._initItems() end)
@@ -304,19 +333,42 @@ local function onInit()
 	end
 
 	-- MFEVENTS LOADING AND INITIALIZING
-
 	local s, e = pcall(function () require("mfevents") end)
 	if s then
+		_mf.events.registerEvent("preupdate")
+		_mf.events.registerEvent("postupdate")
 		_mf.events.registerEvent("update")
+
+		_mf.events.registerEvent("prerender")
+		_mf.events.registerEvent("postrender")
 		_mf.events.registerEvent("render")
+
 		_mf.events.registerEvent("close")
 
 		_mf.events.registerEvent("keypress")
 		_mf.events.registerEvent("mousepress")
 		_mf.events.registerEvent("joypress")
 
+		_mf.events.registerEvent("itemuse")
+
+		local function eventPreUpdate(dt)
+			_mf.events.fire("preupdate", dt)
+		end
+
+		local function eventPostUpdate(dt)
+			_mf.events.fire("postupdate", dt)
+		end
+
 		local function eventUpdate(dt)
 			_mf.events.fire("update", dt)
+		end
+
+		local function eventPreRender()
+			_mf.events.fire("prerender")
+		end
+
+		local function eventPostRender()
+			_mf.events.fire("postrender")
 		end
 
 		local function eventRender()
@@ -339,6 +391,16 @@ local function onInit()
 			_mf.events.fire("joypress", joyId, button)
 		end
 
+		local function eventItemUse(itemname, item, owner)
+			_mf.events.fire("itemuse", itemname, item, owner)
+		end
+
+		_mf.addPreHook("states.update", eventPreUpdate)
+		_mf.addPostHook("states.update", eventPostUpdate)
+
+		_mf.addPreHook("states.render", eventPreRender)
+		_mf.addPostHook("states.render", eventPostRender)
+
 		hook.add("frameUpdate", eventUpdate)
 		hook.add("frameRender", eventRender)
 		hook.add("keyPress", eventOnKey)
@@ -350,7 +412,6 @@ local function onInit()
 	end
 	
 	-- MFMODS LOADING AND INITIALIZING -> Should be done after all subsystems have been loaded.
-
 	local s, e = pcall(function () require("mfmods") end)
 	if s then
 		local s2, e2 = pcall(function () _mf.mods.init() end)
@@ -361,24 +422,6 @@ local function onInit()
 	else
 		print("[METALFRAME BASE FATAL ERROR]\n" ..e)
 	end
-	
-	--_mf.recursiveSearch("missile",OBJECTS)
-	--_mf.recursiveSearch("launcher",ITEMS)
-	--_mf.dumpToFile ("dump.txt", OBJECTS)
-	--local window = gui.createComponent("window")
-	--window:setWidth(400)
-	--window:setHeight(400)
-	--window:centerOnParent()
-	--daisy.setMouseVisible(true)
-	--_mf.addPostHook("MapEntity.new", _mf.report)
-	--_mf.recursivePrint(ITEMS.matterWar)
-	--_mf.dumpToFile("matterWar.txt", ITEMS, 1)
-	--_mf.dumpToFile("entity.txt",Entity,1)
-end
-
-local function renderMouse()
-	daisy.setMouseVisible(true)
 end
 
 hook.add("gameInit", onInit)
---hook.add("frameRender", renderMouse)

@@ -1,6 +1,6 @@
-deathphaser = {} -- create our own table to store global functions (so we don't overwrite anything)
+local deathphaser = {} -- create our own table to store global functions (so we don't overwrite anything)
 
-local function onInit()
+function deathphaser.load()
 	--Edit the phaser
     ITEMS.phaserGun.aimRange = 2000 --set the aim range high for long range auto-aim
 	ITEMS.phaserGun.alwaysAim = true --make auto-aim permanently on
@@ -11,35 +11,38 @@ local function onInit()
 	ITEMS.phaserGun.ai.dangerFactor = 10 --let the AI know it's good
 	OBJECTS.phaserBullet.bulletTimeDistanceFactor = 2 --increase bullet time (i think)
 	OBJECTS.phaserBullet.bulletTimeFactor = 5 --increase bullet time
-	pigbones.addPostHook("ITEMS.phaserGun.useMethod", deathphaser.onPhaser) --hook into the old firing function
+	_mf.addPostHook("ITEMS.phaserGun.useMethod", deathphaser.onPhaser) --hook into the old firing function
 	
 	--Make railGun bullets homing
 	--OBJECTS.slugMedium.updateMethod = OBJECTS.homingMissile.updateMethod
 	
 	--Make the Rail Heater
-	pigbones.createAttack("slugMediumHeated","slugMedium") --copy old attack into a new one
+	_mf.createAttack("slugMediumHeated", "slugMedium") --copy old attack into a new one
 	ATTACKS.slugMediumHeated.damage = 0.3 --set damage lower
 	ATTACKS.slugMediumHeated.heat = 2 --make the attack 'heated'
-	pigbones.createObject("slugMediumHeated","slugMedium") --copy the old bullet into a new one
+
+	_mf.createObject("slugMediumHeated", "slugMedium") --copy the old bullet into a new one
+
 	OBJECTS.slugMediumHeated.attack = ATTACKS.slugMediumHeated --use the new 'heated' attack
-	pigbones.createObjectItem("railHeater","railVanquisher","Rail Heater") --copy the old gun into a new one
+
+	_mf.createObjectItem("railHeater", "railVanquisher", "Rail Heater") --copy the old gun into a new one
 	ITEMS.railHeater.cooldown = 0.1 --set the time between shots lower
 	ITEMS.railHeater.maxAmmo = 15 --set the clip size high
 	ITEMS.railHeater.bullet = "slugMediumHeated"
 	
 	--[[
 	--Make blasters fire grenades
-	pigbones.createObjectItem("armedSphereGrenade", "sphereGrenade", "Armed Sphere Grenade")
+	_mf.createObjectItem("armedSphereGrenade", "sphereGrenade", "Armed Sphere Grenade")
 	OBJECTS.armedSphereGrenade.prepare = true
 	OBJECTS.armedSphereGrenade.hitActive = true
 	--ITEMS.blasterGun.bullet = "none"
 	ITEMS.blasterGun.useMethod = ITEMS.grenadeGun.useMethod
-	pigbones.recursivePrint(OBJECTS.sphereGrenade)
-	--pigbones.addPostHook("OBJECTS.armedSphereGrenade.initMethod", deathphaser.onInitGrenade)
-	--ITEMS.blasterGun.useMethod = pigbones.createUseGrenadeFunction("sphereGrenade", 30) --replace the firing function with one that shoots grenades
+	_mf.recursivePrint(OBJECTS.sphereGrenade)
+	--_mf.addPostHook("OBJECTS.armedSphereGrenade.initMethod", deathphaser.onInitGrenade)
+	--ITEMS.blasterGun.useMethod = _mf.createUseGrenadeFunction("sphereGrenade", 30) --replace the firing function with one that shoots grenades
 	--]]
 	
-	pigbones.createObjectItem("railTri","railVanquisher","Rail Shotgun")
+	_mf.createObjectItem("railTri", "railVanquisher", "Rail Shotgun")
 	ITEMS.railTri.maxAmmo = 3
 	--ITEMS.railTri.automatic = nil
 	ITEMS.railTri.reloadTime = ITEMS.railCannon.reloadTime
@@ -49,7 +52,7 @@ local function onInit()
 	deathphaser.oldRailTriUseMethod = ITEMS.railScout.useMethod
 	ITEMS.railTri.useMethod = deathphaser.onUseTriRail
 	
-	
+	print("Loaded")
 end
 
 function deathphaser.onInitGrenade(self)
@@ -60,15 +63,15 @@ function deathphaser.onInitGrenade(self)
 	self.ref = item
 end
 
-function deathphaser.onPhaser (returns, object, player, angle) -- phaser function
+function deathphaser.onPhaser(returns, object, player, angle) -- phaser function
 	player:propel(angle,200) -- propel the shooter in the direction of the new angle
 end
 
-function deathphaser.onUseTriRail (weapon, actor, angle, ...)
+function deathphaser.onUseTriRail(weapon, actor, angle, ...)
 	--print(getClassNameOf(weapon:super()))
-	--pigbones.recursivePrint(weapon:super())
+	--_mf.recursivePrint(weapon:super())
 	--print(weapon:super())
-	--pigbones.dumpToFile("actor.txt",actor,4)
+	--_mf.dumpToFile("actor.txt",actor,4)
 	local x, y = actor:getAbsoluteNodeXY()
 	weapon.def.bullet = "slugMediumHeated"
 	local val = deathphaser.oldRailTriUseMethod(weapon, actor, angle, ...)
@@ -91,6 +94,4 @@ function deathphaser.onUseTriRailShotgun (weapon, actor, angle, ...)
 	return val
 end
 
-
-
-hook.add("gameInit", onInit) -- call onInit when the game starts
+return deathphaser

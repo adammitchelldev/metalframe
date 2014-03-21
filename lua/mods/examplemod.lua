@@ -40,14 +40,14 @@ function mod.keypress(key) -- Called when a key is pressed by the user
 			return
 
 		elseif key == 50 then
-			print("[KEYLOGGER] Disabled the keylogger - Press '1' to enable it again")
+			daisy.clearPrint()
 
 			mod.keylog = false
 			
 			return
 
 		elseif key == 51 then
-			print("[KEYLOGGER] Removed key callbacks - The mod is now semi disabled.")
+			daisy.clearPrint()
 
 			_mf.events.getEvent("keypress"):popCallback("examplemod/keypress")
 
@@ -56,7 +56,6 @@ function mod.keypress(key) -- Called when a key is pressed by the user
 			daisy.clearPrint()
 			
 			return
-
 		end
 
 		print("[KEYLOGGER] Pressed: " ..key)
